@@ -1,13 +1,13 @@
-from loguru import logger as log
+import os
+import sys
+import warnings
 from datetime import datetime, timedelta
-import os, sys
 
 import pandas as pd
+from loguru import logger as log
 
-from api.servicodados_ibge import CalendarioIPCA
 from api.ipca import Ipca
-
-import warnings
+from utils import countdown
 
 warnings.filterwarnings('ignore')
 
@@ -34,30 +34,39 @@ def get_last_mounth_update(saved_series):
 
 
 def main():
-    saved_series = read_file(FILE)
-    start = (get_last_mounth_update(saved_series) + timedelta(days=32)).strftime(
-        '%Y%m')  # add one mounth at the last date
-    end = datetime.today().strftime('%Y%m')  # current mounth
+    display = total_attempts = 10
 
-    if start == end:
-        log.info('The file is already updated.')
-        sys.exit(os.EX_OK)
+    while total_attempts != 0:
+        saved_series = read_file(FILE)
+        last_update = get_last_mounth_update(saved_series)
 
-    ipca_series = Ipca(start=start, end=end).get_series()[1:]  # [1:] remove headers
+        available_data_on_site = Ipca.last_update()
 
-    try:
-        new_data = pd.concat([saved_series, ipca_series], ignore_index=True)
-        new_data.to_csv(FILE, index=False)
-        log.info('Updated file.')
-    except BaseException as err:
-        log.error(f'An error occurred while trying to update the file: {FILE}')
-        log.error(err)
+        if available_data_on_site != last_update.strftime('%Y%m'):
+            start = (last_update + timedelta(days=32)).strftime('%Y%m')  # add one mounth at the last date
+            end = available_data_on_site  # current mounth
 
-    # ca = CalendarioIPCA(today)
-    # log.debug(ca.get_schedules())
+            ipca_series = Ipca(start=start, end=end).get_series()[1:]  # [1:] remove headers
+
+            try:
+                new_data = pd.concat([saved_series, ipca_series], ignore_index=True)
+                new_data.to_csv(FILE, index=False)
+                log.info('Updated file.')
+                break
+            except BaseException as err:
+                log.error(f'An error occurred while trying to update the file: {FILE}')
+                log.error(err)
+
+        else:
+            log.info('The file is already updated.')
+            log.info(f'Attempts: {total_attempts}/{display}')
+            countdown(60)
+            total_attempts -= 1
+
+        # ca = CalendarioIPCA(today)
+        # log.debug(ca.get_schedules())
 
 
 if __name__ == '__main__':
     log.info('Starting...')
     main()
-    # Ipca(start='199501', end='202201').get_series().to_csv('ipca_series.csv', index=False)

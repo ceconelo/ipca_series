@@ -20,3 +20,13 @@ class Ipca:
             period=f"{self.__start}-{self.__end}",
             verify_ssl=False
         )
+
+    @staticmethod
+    def last_update():
+        return sidrapy.get_table(
+            table_code="1737",  # ipca
+            territorial_level="1",
+            ibge_territorial_code="all",  # all
+            variable='63',
+            verify_ssl=False
+        ).iloc[-1]['D3C'] # last line

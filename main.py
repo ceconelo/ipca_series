@@ -27,7 +27,7 @@ def read_file(file):
         return pd.read_csv(file)
 
 
-def get_last_mounth_update(saved_series):
+def get_last_month_update(saved_series):
     last_update = pd.to_datetime(saved_series.iloc[-1]['D2C'], format='%Y%m')
     log.info(f'Latest update: {last_update.strftime("%Y%m")}')
     return last_update
@@ -38,13 +38,13 @@ def main():
 
     while total_attempts != 0:
         saved_series = read_file(FILE)
-        last_update = get_last_mounth_update(saved_series)
+        last_update = get_last_month_update(saved_series)
 
         available_data_on_site = Ipca.last_update()
 
         if available_data_on_site != last_update.strftime('%Y%m'):
             start = (last_update + timedelta(days=32)).strftime('%Y%m')  # add one mounth at the last date
-            end = available_data_on_site  # current mounth
+            end = available_data_on_site
 
             ipca_series = Ipca(start=start, end=end).get_series()[1:]  # [1:] remove headers
 

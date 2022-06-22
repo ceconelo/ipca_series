@@ -8,6 +8,7 @@ from datetime import datetime
     Docs. https://servicodados.ibge.gov.br/api/docs
 '''
 
+
 class CalendarioIPCA:
     def __init__(self, date):
         self.__produto = '9256'  # ipca
@@ -31,6 +32,3 @@ class CalendarioIPCA:
             return scheds
         else:
             log.error('An error occurred while requesting the API.')
-
-
-

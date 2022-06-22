@@ -11,6 +11,8 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+FILE = 'ipca_series.csv'
+
 
 def read_file(file):
     log.info(f'Reading file: {file}')
@@ -19,7 +21,8 @@ def read_file(file):
     except:
         log.warning('File not found')
         log.info('Creating a new time series file: Jan1995 - Jan2022')
-        Ipca(start='199501', end='202201').get_series().to_csv('ipca_series.csv', index=False)
+        Ipca(start='199501', end='202201').get_series().to_csv(FILE, index=False)
+        log.info(f'File created: {FILE}')
     finally:
         return pd.read_csv(file)
 
@@ -31,9 +34,9 @@ def get_last_mounth_update(saved_series):
 
 
 def main():
-    file = 'ipca_series.csv'
-    saved_series = read_file(file)
-    start = (get_last_mounth_update(saved_series) + timedelta(days=32)).strftime('%Y%m')  # add one mounth at the last date
+    saved_series = read_file(FILE)
+    start = (get_last_mounth_update(saved_series) + timedelta(days=32)).strftime(
+        '%Y%m')  # add one mounth at the last date
     end = datetime.today().strftime('%Y%m')  # current mounth
 
     if start == end:
@@ -44,10 +47,10 @@ def main():
 
     try:
         new_data = pd.concat([saved_series, ipca_series], ignore_index=True)
-        new_data.to_csv(file, index=False)
+        new_data.to_csv(FILE, index=False)
         log.info('Updated file.')
     except BaseException as err:
-        log.error(f'An error occurred while trying to update the file: {file}')
+        log.error(f'An error occurred while trying to update the file: {FILE}')
         log.error(err)
 
     # ca = CalendarioIPCA(today)

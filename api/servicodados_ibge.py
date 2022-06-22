@@ -4,7 +4,7 @@ from loguru import logger as log
 from datetime import datetime
 
 '''
-    Consumindo API do ibge.
+    API IBGE.
     Docs. https://servicodados.ibge.gov.br/api/docs
 '''
 
